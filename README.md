@@ -77,33 +77,28 @@ pub fn try_extract_inner_types(ty: &Type) -> Option<Vec<&Type>> { ... }
 
 ### 3.3. `Predicate`
 
-#### 3.3.1. `Predicate`
-
 - `Option`
 
     - ```rust
-  pub fn try_predicate_is_option(ty: &Type) -> bool { ... }
-    ```
+      pub fn try_predicate_is_option(ty: &Type) -> bool { ... }
+      ```
 
 - `Vec`
 
     - ```rust
-  pub fn try_predicate_is_vec(ty: &Type) -> bool { ... }
-    ```
+      pub fn try_predicate_is_vec(ty: &Type) -> bool { ... }
+      ```
 
 - `Ident`
 
     - ```rust
-  pub fn try_predicate_is_not_ident(ident: &str, path: &Path) -> bool { ... }
-  pub fn try_predicate_is_ident(ident: &str, path: &Path) -> bool { ... }
-    ```
+      pub fn try_predicate_is_not_ident(ident: &str, path: &Path) -> bool { ... }
+      pub fn try_predicate_is_ident(ident: &str, path: &Path) -> bool { ... }
+      ```
 
 - `segments`
 
     - ```rust
-  pub fn try_predicate_path_segments_is_not_empty(path: &Path) -> bool { ... }
-  pub fn try_predicate_path_segments_is_empty(path: &Path) -> bool { ... }
-    ```
-
-  
-
+      pub fn try_predicate_path_segments_is_not_empty(path: &Path) -> bool { ... }
+      pub fn try_predicate_path_segments_is_empty(path: &Path) -> bool { ... }
+      ```
