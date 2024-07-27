@@ -1,0 +1,11 @@
+[default]
+files = ["*.rs", "*.md", "*.toml", "*.yml"]
+
+[default.extend-words]
+"synext" = "synext"
+
+[files]
+extend-exclude = [
+    # Ignore these files
+    "*/*.md",
+]

@@ -1,0 +1,24 @@
+[package]
+name = "synext"
+version = "0.1.0"
+edition = "2021"
+
+authors = ["photowey <photowey@gmail.com>"]
+license = "Apache-2.0"
+
+documentation = "https://docs.rs/synext"
+repository = "https://github.com/photowey/synext"
+homepage = "https://github.com/photowey/synext"
+
+description = """
+A simple extension library for syn crate to help developers quickly develop derive macros
+"""
+
+readme = "README.md"
+keywords = ["macro", "syn"]
+# https://crates.io/category_slugs
+categories = ["development-tools::procedural-macro-helpers"]
+
+[dependencies]
+syn = { version = "1.0", features = ["full"] }
+proc-macro2 = "1.0"
