@@ -19,6 +19,6 @@
 // ----------------------------------------------------------------
 
 #[doc(inline)]
-pub use syntax::*;
+pub use syntax::derive::parser::*;
 
-pub mod syntax;
+mod syntax;
