@@ -171,9 +171,9 @@ pub fn try_unwrap_types<'a>(
 
 /// Try to extract the inner type of [`syn::Type`]
 ///
-/// - Option<T> -> T
-/// - Vec<T> -> T
-/// - Result<T, E> -> T, E
+/// - Option\<T\> -> T
+/// - Vec\<T\> -> T
+/// - Result\<T, E\> -> T, E
 /// - String -> None
 /// - ...
 #[rustfmt::skip]

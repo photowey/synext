@@ -107,7 +107,7 @@ pub fn try_extract_inner_types(ty: &Type) -> Option<Vec<&Type>> { ... }
       pub fn try_predicate_path_segments_is_empty(path: &Path) -> bool { ... }
       ```
 
-### 3.4.`Attribute`
+### 3.4.`Derive attribute`
 
 Try to extract the specified path attribute value from a field's attributes.
 
@@ -115,4 +115,60 @@ Try to extract the specified path attribute value from a field's attributes.
 // @since 0.2.0
 pub fn try_extract_field_attribute_path_attribute(...) -> syn::Result<Option<syn::Ident>> { ... }
 ```
+
+### 3.5.`Attribute macro`
+
+#### 3.5.1.`kv`
+
+```rust
+extern crate proc_macro;
+
+use proc_macro::TokenStream;
+use std::sync::Arc;
+
+#[proc_macro_attribute]
+pub fn component(args: TokenStream, item: TokenStream) -> TokenStream {
+    // ...
+}
+
+pub struct HelloService {
+    // ...
+}
+
+#[component(value = "helloController")] // kv
+pub struct HelloController {
+    hello_service: Arc<HelloService>,
+}
+
+->
+try_extract_attribute_args("value", args);
+```
+
+#### 3.5.2.`first`
+
+```rust
+extern crate proc_macro;
+
+use proc_macro::TokenStream;
+use std::sync::Arc;
+
+#[proc_macro_attribute]
+pub fn component(args: TokenStream, item: TokenStream) -> TokenStream {
+    // ...
+}
+
+pub struct HelloService {
+    // ...
+}
+
+#[component("helloController")] // first
+pub struct HelloController {
+    hello_service: Arc<HelloService>,
+}
+
+->
+try_extract_attribute_first_args(args);
+```
+
+
 

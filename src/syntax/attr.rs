@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-// synext
+// syntax/attr
 
 // ----------------------------------------------------------------
 
-/// @since 0.3.0
 #[doc(inline)]
-pub use syntax::attr::parser::*;
-#[doc(inline)]
-pub use syntax::derive::parser::*;
+pub use parser::*;
 
-pub mod syntax;
+pub mod parser;
