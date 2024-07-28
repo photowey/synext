@@ -27,6 +27,7 @@ use std::fmt::Display;
 use proc_macro2::Span;
 use syn::__private::ToTokens;
 use syn::punctuated::Punctuated;
+use syn::spanned::Spanned;
 use syn::token::Comma;
 use syn::{
     parse, Data, DataStruct, DeriveInput, Field, Fields, GenericArgument, Path, PathArguments, Type,
@@ -47,6 +48,7 @@ pub fn try_derive_input(input: proc_macro::TokenStream) -> DeriveInput {
 // ----------------------------------------------------------------
 
 /// Try parse [`syn::DeriveInput`] named fields [`Punctuated<Field, Comma>`].
+#[rustfmt::skip]
 pub fn try_parse_named_fields(input: &DeriveInput) -> &Punctuated<Field, Comma> {
     let struct_name = &input.ident;
 
@@ -70,6 +72,7 @@ pub fn try_parse_named_fields(input: &DeriveInput) -> &Punctuated<Field, Comma> 
 // ----------------------------------------------------------------
 
 /// Try parse [`syn::DeriveInput`] unnamed fields [`Punctuated<Field, Comma>`].
+#[rustfmt::skip]
 pub fn try_parse_unnamed_fields(input: &DeriveInput) -> &Punctuated<Field, Comma> {
     let struct_name = &input.ident;
 
@@ -93,6 +96,7 @@ pub fn try_parse_unnamed_fields(input: &DeriveInput) -> &Punctuated<Field, Comma
 // ----------------------------------------------------------------
 
 /// Try parse [`syn::DeriveInput`] matches fields [`Punctuated<Field, Comma>`].
+#[rustfmt::skip]
 pub fn try_match_fields(input: &DeriveInput) -> &Punctuated<Field, Comma> {
     let struct_name = &input.ident;
 
@@ -126,13 +130,18 @@ pub fn try_unwrap_vec(ty: &Type) -> &Type {
     try_unwrap_types(BUILTIN_TYPE_VEC, 1, ty).unwrap()[0]
 }
 
+#[rustfmt::skip]
 pub fn try_unwrap_types<'a>(
     ident: &str,
     target_types: usize,
     ty: &'a Type,
 ) -> Option<Vec<&'a Type>> {
     // @formatter:off
-    if let Type::Path(syn::TypePath { ref path, .. }) = ty {
+    if let Type::Path(
+        syn::TypePath {
+            ref path,
+            ..
+        }) = ty {
         // @formatter:on
         if try_predicate_is_ident(&ident, &path) && try_predicate_path_segments_is_not_empty(path) {
             let inner_type = try_extract_inner_types(ty);
@@ -160,16 +169,21 @@ pub fn try_unwrap_types<'a>(
     None
 }
 
-/// Extracts the type of types
+/// Try to extract the inner type of [`syn::Type`]
 ///
 /// - Option<T> -> T
 /// - Vec<T> -> T
 /// - Result<T, E> -> T, E
 /// - String -> None
 /// - ...
+#[rustfmt::skip]
 pub fn try_extract_inner_types(ty: &Type) -> Option<Vec<&Type>> {
     // @formatter:off
-    if let Type::Path(syn::TypePath { ref path, .. }) = ty {
+    if let Type::Path(
+        syn::TypePath {
+            ref path,
+            ..
+        }) = ty {
         // @formatter:on
         if try_predicate_path_segments_is_not_empty(path) {
             if let PathArguments::AngleBracketed(ref bracketed_generics) =
@@ -194,6 +208,90 @@ pub fn try_extract_inner_types(ty: &Type) -> Option<Vec<&Type>> {
 
 // ----------------------------------------------------------------
 
+/// Try to extract the specified path attribute value from a field's attributes.
+///
+/// # Arguments
+///
+/// * `derive_attribute` - The identifier of the derive attribute that needs to be found.
+/// * `path_attribute`   - The identifier of the key-value pair attribute within the derive
+///                        attribute that needs to be extracted.
+/// * `field`            - A reference to the `Field` struct which contains the attributes
+///                        to be searched.
+///
+/// # Returns
+///
+/// * `Ok(Some(syn::Ident))` - If the specified path attribute is found, returns the identifier
+///                            wrapped in `Some`.
+/// * `Ok(None)`             - If the specified path attribute is not found.
+/// * `Err(syn::Error)`      - If an error occurs during parsing or the expected attribute format
+///                            is not met.
+///
+/// # Example:
+///
+/// ```ignore
+/// extern crate proc_macro;
+///
+/// use proc_macro::TokenStream;
+///
+/// #[proc_macro_derive(Builder, attributes(builder))]
+/// pub fn builder_derive(input: TokenStream) -> TokenStream {
+///     TokenStream::new()
+/// }
+///
+/// #[derive(Builder)]
+/// pub struct Hello {
+///     // derive_attribute = builder
+///     // path_attribute = method
+///     #[builder(method = "activity")]
+///     activities: Vec<String>,
+/// }
+/// ```
+///
+/// @since 0.2.0
+#[rustfmt::skip]
+pub fn try_extract_field_attribute_path_attribute(derive_attribute: &str, path_attribute: &str, field: &Field) -> syn::Result<Option<syn::Ident>> {
+    for attr in &field.attrs {
+        // @formatter:off
+        if let Ok(
+            syn::Meta::List(
+                syn::MetaList {
+                    ref path,
+                    ref nested,
+                    ..
+                })) = attr.parse_meta()
+        {
+            // @formatter:on
+            if let Some(p) = path.segments.first() {
+                if p.ident == derive_attribute {
+                    if let Some(syn::NestedMeta::Meta(syn::Meta::NameValue(kv))) = nested.first() {
+                        if kv.path.is_ident(path_attribute) {
+                            if let syn::Lit::Str(ref target_attr) = kv.lit {
+                                return Ok(Some(syn::Ident::new(
+                                    target_attr.value().as_str(),
+                                    attr.span(),
+                                )));
+                            }
+                        } else {
+                            if let Ok(syn::Meta::List(ref list)) = attr.parse_meta() {
+                                return Err(syn::Error::new_spanned(
+                                    list,
+                                    format!(
+                                        r#"expected `{}({} = "...")`"#,
+                                        derive_attribute, path_attribute
+                                    ),
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(None)
+}
+
+// ----------------------------------------------------------------
+
 pub fn make_new_compile_error<T: Display>(span: Span, message: T) -> proc_macro::TokenStream {
     syn::Error::new(span, message).to_compile_error().into()
 }
@@ -209,17 +307,49 @@ pub fn make_new_spanned_compile_error<T: ToTokens, U: Display>(
 
 // ---------------------------------------------------------------- boolean.function
 
+/// Try to predicate that [`syn::Type`] is neither of type [`core::option::Option<T>`] nor of type [`std::vec::Vec<T>`]
+///
+/// @since 0.2.0
+pub fn try_predicate_is_not_option_and_vec(ty: &Type) -> bool {
+    try_predicate_is_not_option(ty) && try_predicate_is_not_vec(ty)
+}
+
+/// Try to predicate that [`syn::Type`] is not [`core::option::Option<T>`] type.
+///
+/// @since 0.2.0
+pub fn try_predicate_is_not_option(ty: &Type) -> bool {
+    !try_predicate_is_option(ty)
+}
+
+/// Try to predicate that [`syn::Type`] is not [`std::vec::Vec<T>`] type.
+///
+/// @since 0.2.0
+pub fn try_predicate_is_not_vec(ty: &Type) -> bool {
+    !try_predicate_is_vec(ty)
+}
+
+/// Try to predicate that [`syn::Type`] is [`core::option::Option<T>`] type.
+///
+/// @since 0.2.0
 pub fn try_predicate_is_option(ty: &Type) -> bool {
     try_predicate_is_type(BUILTIN_TYPE_OPTION, 1, ty)
 }
 
+/// Try to predicate that [`syn::Type`] is [`std::vec::Vec<T>`] type.
+///
+/// @since 0.2.0
 pub fn try_predicate_is_vec(ty: &Type) -> bool {
     try_predicate_is_type(BUILTIN_TYPE_VEC, 1, ty)
 }
 
+#[rustfmt::skip]
 pub fn try_predicate_is_type(ident: &str, target_types: usize, ty: &Type) -> bool {
     // @formatter:off
-    if let Type::Path(syn::TypePath { ref path, .. }) = ty {
+    if let Type::Path(
+        syn::TypePath {
+            ref path,
+            ..
+        }) = ty {
         // @formatter:on
         if try_predicate_is_ident(&ident, &path) && path.segments.len() == target_types {
             return true;
@@ -233,11 +363,7 @@ pub fn try_predicate_is_not_ident(ident: &str, path: &Path) -> bool {
 }
 
 pub fn try_predicate_is_ident(ident: &str, path: &Path) -> bool {
-    if !path.segments.is_empty() && path.segments.last().unwrap().ident == ident {
-        true
-    } else {
-        false
-    }
+    try_predicate_path_segments_is_not_empty(path) && path.segments.last().unwrap().ident == ident
 }
 
 pub fn try_predicate_path_segments_is_not_empty(path: &Path) -> bool {
