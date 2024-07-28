@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-synext = "0.1"
+synext = "0.2"
 ```
 
 ## 3. `APIs`
