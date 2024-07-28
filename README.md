@@ -81,19 +81,23 @@ pub fn try_extract_inner_types(ty: &Type) -> Option<Vec<&Type>> { ... }
 
     - ```rust
       pub fn try_predicate_is_option(ty: &Type) -> bool { ... }
+      // @since 0.2.0
+      pub fn try_predicate_is_not_option(ty: &Type) -> bool { ... }
       ```
 
 - `Vec`
 
     - ```rust
       pub fn try_predicate_is_vec(ty: &Type) -> bool { ... }
+      // @since 0.2.0
+      pub fn try_predicate_is_not_vec(ty: &Type) -> bool { ... }
       ```
 
 - `Ident`
 
     - ```rust
-      pub fn try_predicate_is_not_ident(ident: &str, path: &Path) -> bool { ... }
       pub fn try_predicate_is_ident(ident: &str, path: &Path) -> bool { ... }
+      pub fn try_predicate_is_not_ident(ident: &str, path: &Path) -> bool { ... }
       ```
 
 - `segments`
@@ -102,3 +106,13 @@ pub fn try_extract_inner_types(ty: &Type) -> Option<Vec<&Type>> { ... }
       pub fn try_predicate_path_segments_is_not_empty(path: &Path) -> bool { ... }
       pub fn try_predicate_path_segments_is_empty(path: &Path) -> bool { ... }
       ```
+
+### 3.4.`Attribute`
+
+Try to extract the specified path attribute value from a field's attributes.
+
+```rust
+// @since 0.2.0
+pub fn try_extract_field_attribute_path_attribute(...) -> syn::Result<Option<syn::Ident>> { ... }
+```
+
