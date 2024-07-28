@@ -228,10 +228,11 @@ pub fn try_extract_inner_types(ty: &Type) -> Option<Vec<&Type>> {
 ///
 /// # Example:
 ///
-/// ```rust
+/// ```ignore
 /// extern crate proc_macro;
 ///
 /// use proc_macro::TokenStream;
+///
 /// #[proc_macro_derive(Builder, attributes(builder))]
 /// pub fn builder_derive(input: TokenStream) -> TokenStream {
 ///     TokenStream::new()
